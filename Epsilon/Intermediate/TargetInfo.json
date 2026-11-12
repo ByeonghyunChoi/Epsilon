@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "Epsilon",
+			"Path": "..\\Source\\Epsilon.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "EpsilonEditor",
+			"Path": "..\\Source\\EpsilonEditor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}
