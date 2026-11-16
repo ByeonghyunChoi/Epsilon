@@ -1,0 +1,52 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Abilities/GameplayAbility.h"
+#include "ComboAttackData.h"
+#include "GA_ComboAttack.generated.h"
+
+class UAbilityTask_PlayMontageAndWait;
+
+/**
+ * 
+ */
+UCLASS()
+class EPSILON_API UGA_ComboAttack : public UGameplayAbility
+{
+	GENERATED_BODY()
+	
+public:
+	UGA_ComboAttack();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combo")
+	TArray<FComboAttackData> ComboData;
+
+	virtual void ActivateAbility(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		const FGameplayEventData* TriggerEventData) override;
+
+	void SetComboWindowOpen(bool bOpen);
+	void RequestNextCombo();
+	void TryAdvanceComboIfQueued();
+
+	static UGA_ComboAttack* FindActiveInstance(AActor* OwnerActor);
+
+protected:
+	int32 CurrentComboIndex = 0;
+	bool bNextComboQueued = false;
+	bool bComboWindowOpen = false;
+
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
+
+	UFUNCTION()
+	void OnMontageCompleted();
+
+	void PlayComboMontage(int32 ComboIndex);
+
+
+};

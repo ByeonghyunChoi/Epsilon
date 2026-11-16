@@ -7,12 +7,15 @@
 #include "AbilitySystemInterface.h"
 #include "EpsilonCharacter.generated.h"
 
+class USpringArmComponent;
+class UCameraComponent;
 class UAbilitySystemComponent;
 class UEpsilonAttributeSet;
 class UGameplayAbility;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
+
 
 UCLASS()
 class EPSILON_API AEpsilonCharacter : public ACharacter, public IAbilitySystemInterface
@@ -23,8 +26,16 @@ public:
 	AEpsilonCharacter();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void Tick(float deltaTime) override;
 
 protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	TObjectPtr<USpringArmComponent> CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	TObjectPtr<UCameraComponent> FollowCamera;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
@@ -39,6 +50,19 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> BasicAttackInputAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> MoveInputAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> LookInputAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> MouseLookInputAction;
+
+	void OnMoveInput(const FInputActionValue& Value);
+
+	void OnLookInput(const FInputActionValue& Value);
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
