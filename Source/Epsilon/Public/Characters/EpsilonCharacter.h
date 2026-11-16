@@ -10,6 +10,9 @@
 class UAbilitySystemComponent;
 class UEpsilonAttributeSet;
 class UGameplayAbility;
+class UInputAction;
+class UInputMappingContext;
+struct FInputActionValue;
 
 UCLASS()
 class EPSILON_API AEpsilonCharacter : public ACharacter, public IAbilitySystemInterface
@@ -30,6 +33,16 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> BasicAttackInputAction;
+
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	void OnBasicAttackInput(const FInputActionValue& Value);
 
 	void GiveStartupAbilities();
 };
