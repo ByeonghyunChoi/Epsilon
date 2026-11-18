@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -44,17 +44,16 @@ protected:
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
-	float AttackReachDistance = 150.f; // Àû ¾Õ ÀÌ °Å¸®¸¸Å­ ¶³¾îÁø ÁöÁ¡¿¡¼­ Å¸°İ
+	float AttackReachDistance = 150.f; // ì  ì• ì´ ê±°ë¦¬ë§Œí¼ ë–¨ì–´ì§„ ì§€ì ì—ì„œ íƒ€ê²©
 
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
-	float MaxWarpDistance = 600.f; // ÀÌ °Å¸®¸¦ ³ÑÀ¸¸é Á¦ÀÚ¸® °ø°İÀ¸·Î Æú¹é
+	float MaxWarpDistance = 600.f; // ì´ ê±°ë¦¬ë¥¼ ë„˜ìœ¼ë©´ ì œìë¦¬ ê³µê²©ìœ¼ë¡œ í´ë°±
+
+	const FGameplayAbilityActorInfo* CachedActorInfo = nullptr;
 
 	UFUNCTION()
 	void OnMontageCompleted();
 
 	void PlayComboMontage(int32 ComboIndex);
-
-	void SetupMotionWarpTarget(const FGameplayAbilityActorInfo* ActorInfo);
-
 
 };

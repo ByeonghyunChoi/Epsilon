@@ -4,6 +4,7 @@
 #include "Components/EpsilonTargetingComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "GameFramework/Character.h"
+#include "MotionWarpingComponent.h"
 
 UEpsilonTargetingComponent::UEpsilonTargetingComponent()
 {
@@ -63,6 +64,59 @@ AActor* UEpsilonTargetingComponent::FindAttackTarget() const
 	}
 
 	return BestTarget;
+}
+
+AActor* UEpsilonTargetingComponent::AcquireNewLock()
+{
+	LockedTarget = FindAttackTarget();
+	return LockedTarget;
+}
+
+AActor* UEpsilonTargetingComponent::GetOrRefreshLockedTarget()
+{
+	if (!IsValid(LockedTarget))
+	{
+		AcquireNewLock();
+	}
+	return LockedTarget;
+}
+
+void UEpsilonTargetingComponent::ClearLock()
+{
+	LockedTarget = nullptr;
+}
+
+bool UEpsilonTargetingComponent::UpdateMotionWarpTarget(FName WarpTargetName, float AttackReachDistance, float MaxWarpDistance)
+{
+	AActor* OwnerActor = GetOwner();
+	if (!OwnerActor) return false;
+
+	UMotionWarpingComponent* WarpComp = OwnerActor->FindComponentByClass<UMotionWarpingComponent>();
+	if (!WarpComp) return false;
+
+	AActor* Target = GetOrRefreshLockedTarget();
+	if (!IsValid(Target))
+	{
+		WarpComp->RemoveWarpTarget(WarpTargetName);
+		return false;
+	}
+
+	const FVector OwnerLocation = OwnerActor->GetActorLocation();
+	const FVector TargetLocation = Target->GetActorLocation();
+	const float Distance = FVector::Dist(OwnerLocation, TargetLocation);
+
+	if (Distance > MaxWarpDistance)
+	{
+		WarpComp->RemoveWarpTarget(WarpTargetName);
+		return false;
+	}
+
+	const FVector DirectionToTarget = (TargetLocation - OwnerLocation).GetSafeNormal();
+	const FVector WarpLocation = TargetLocation - (DirectionToTarget * AttackReachDistance);
+	const FRotator WarpRotation = DirectionToTarget.Rotation();
+
+	WarpComp->AddOrUpdateWarpTargetFromLocationAndRotation(WarpTargetName, WarpLocation, WarpRotation);
+	return true;
 }
 
 
