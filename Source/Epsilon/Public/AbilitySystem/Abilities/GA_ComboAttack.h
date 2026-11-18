@@ -43,10 +43,18 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
+	float AttackReachDistance = 150.f; // 적 앞 이 거리만큼 떨어진 지점에서 타격
+
+	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
+	float MaxWarpDistance = 600.f; // 이 거리를 넘으면 제자리 공격으로 폴백
+
 	UFUNCTION()
 	void OnMontageCompleted();
 
 	void PlayComboMontage(int32 ComboIndex);
+
+	void SetupMotionWarpTarget(const FGameplayAbilityActorInfo* ActorInfo);
 
 
 };

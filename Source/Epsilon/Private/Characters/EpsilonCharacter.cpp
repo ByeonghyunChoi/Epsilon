@@ -11,11 +11,15 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/EpsilonTargetingComponent.h"
+#include "MotionWarpingComponent.h"
 
 AEpsilonCharacter::AEpsilonCharacter()
 {
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AttributeSet = CreateDefaultSubobject<UEpsilonAttributeSet>(TEXT("AttributeSet"));
+	TargetingComponent = CreateDefaultSubobject<UEpsilonTargetingComponent>(TEXT("TargetingComponent"));
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -51,12 +55,17 @@ void AEpsilonCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-	if (AbilitySystemComponent &&
-		AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Attack.Active"))))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ActorRotation: %s, ControlRotation: %s"),
-			*GetActorRotation().ToString(), *GetControlRotation().ToString());
-	}
+	//if (AbilitySystemComponent &&
+	//	AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Attack.Active"))))
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("ActorRotation: %s, ControlRotation: %s"),
+	//		*GetActorRotation().ToString(), *GetControlRotation().ToString());
+	//}
+}
+
+UEpsilonTargetingComponent* AEpsilonCharacter::GetEpsilonTargetingComponent() const
+{
+	return TargetingComponent;
 }
 
 void AEpsilonCharacter::OnMoveInput(const FInputActionValue& Value)

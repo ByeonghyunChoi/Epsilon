@@ -2,6 +2,9 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "Characters/EpsilonCharacter.h"
+#include "Components/EpsilonTargetingComponent.h"
+#include "MotionWarpingComponent.h"
 
 UGA_ComboAttack::UGA_ComboAttack()
 {
@@ -25,6 +28,7 @@ void UGA_ComboAttack::ActivateAbility(
 		return;
 	}
 
+	SetupMotionWarpTarget(ActorInfo);
 	PlayComboMontage(CurrentComboIndex);
 }
 
@@ -104,6 +108,41 @@ void UGA_ComboAttack::PlayComboMontage(int32 ComboIndex)
 	CurrentMontageTask->OnCancelled.AddDynamic(this, &UGA_ComboAttack::OnMontageCompleted);
 	CurrentMontageTask->ReadyForActivation();
 
+}
+
+void UGA_ComboAttack::SetupMotionWarpTarget(const FGameplayAbilityActorInfo* ActorInfo)
+{
+	AEpsilonCharacter* OwnerChar = Cast<AEpsilonCharacter>(ActorInfo->AvatarActor.Get());
+	if (!OwnerChar) return;
+
+	UEpsilonTargetingComponent* Targeting = OwnerChar->GetEpsilonTargetingComponent();
+	if (!Targeting) return;
+
+	UMotionWarpingComponent* WarpComp = OwnerChar->FindComponentByClass<UMotionWarpingComponent>();
+	if (!WarpComp) return;
+
+	AActor* Target = Targeting->FindAttackTarget();
+	if (!Target)
+	{
+		WarpComp->RemoveWarpTarget(FName("AttackTarget")); // 타겟 없으면 이전 Warp Target 제거
+		return;
+	}
+
+	const FVector OwnerLocation = OwnerChar->GetActorLocation();
+	const FVector TargetLocation = Target->GetActorLocation();
+	const float Distance = FVector::Dist(OwnerLocation, TargetLocation);
+
+	if (Distance > MaxWarpDistance)
+	{
+		WarpComp->RemoveWarpTarget(FName("AttackTarget")); // 너무 멀면 폴백 (제자리 공격)
+		return;
+	}
+
+	FVector DirectionToTarget = (TargetLocation - OwnerLocation).GetSafeNormal();
+	FVector WarpLocation = TargetLocation - (DirectionToTarget * AttackReachDistance);
+	FRotator WarpRotation = DirectionToTarget.Rotation();
+
+	WarpComp->AddOrUpdateWarpTargetFromLocationAndRotation(FName("AttackTarget"), WarpLocation, WarpRotation);
 }
 
 void UGA_ComboAttack::OnMontageCompleted()

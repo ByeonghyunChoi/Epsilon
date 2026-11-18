@@ -15,7 +15,8 @@ class UGameplayAbility;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
-
+class UEpsilonTargetingComponent;
+class UMotionWarpingComponent;
 
 UCLASS()
 class EPSILON_API AEpsilonCharacter : public ACharacter, public IAbilitySystemInterface
@@ -27,6 +28,9 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void Tick(float deltaTime) override;
+
+public:
+	UEpsilonTargetingComponent* GetEpsilonTargetingComponent() const;
 
 protected:
 
@@ -59,6 +63,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> MouseLookInputAction;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Targeting")
+	TObjectPtr<UEpsilonTargetingComponent> TargetingComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
+	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
 
 	void OnMoveInput(const FInputActionValue& Value);
 
