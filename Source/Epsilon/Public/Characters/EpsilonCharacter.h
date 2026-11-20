@@ -17,6 +17,7 @@ class UInputMappingContext;
 struct FInputActionValue;
 class UEpsilonTargetingComponent;
 class UMotionWarpingComponent;
+class UEpsilonWeaponComponent;
 
 UCLASS()
 class EPSILON_API AEpsilonCharacter : public ACharacter, public IAbilitySystemInterface
@@ -28,12 +29,15 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void Tick(float deltaTime) override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 public:
 	UEpsilonTargetingComponent* GetEpsilonTargetingComponent() const;
 
-protected:
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	UEpsilonWeaponComponent* GetWeaponComponent() const;
 
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
@@ -70,6 +74,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<UEpsilonWeaponComponent> WeaponComponent;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float AttackCameraLockInterpSpeed = 15.f;
+
+protected:
 	void OnMoveInput(const FInputActionValue& Value);
 
 	void OnLookInput(const FInputActionValue& Value);
@@ -79,4 +91,6 @@ protected:
 	void OnBasicAttackInput(const FInputActionValue& Value);
 
 	void GiveStartupAbilities();
+
+	void UpdateAttackCameraLock(float DeltaTime);
 };

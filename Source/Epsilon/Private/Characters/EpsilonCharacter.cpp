@@ -13,6 +13,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/EpsilonTargetingComponent.h"
 #include "MotionWarpingComponent.h"
+#include "Components/EpsilonWeaponComponent.h"
 
 AEpsilonCharacter::AEpsilonCharacter()
 {
@@ -20,6 +21,7 @@ AEpsilonCharacter::AEpsilonCharacter()
 	AttributeSet = CreateDefaultSubobject<UEpsilonAttributeSet>(TEXT("AttributeSet"));
 	TargetingComponent = CreateDefaultSubobject<UEpsilonTargetingComponent>(TEXT("TargetingComponent"));
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+	WeaponComponent = CreateDefaultSubobject<UEpsilonWeaponComponent>(TEXT("WeaponComponent"));
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -55,17 +57,32 @@ void AEpsilonCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-	//if (AbilitySystemComponent &&
-	//	AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Attack.Active"))))
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("ActorRotation: %s, ControlRotation: %s"),
-	//		*GetActorRotation().ToString(), *GetControlRotation().ToString());
-	//}
+	UpdateAttackCameraLock(deltaTime);
+
+	if (WeaponComponent)
+	{
+		WeaponComponent->UpdateHitDetection();
+	}
+}
+
+void AEpsilonCharacter::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	if (WeaponComponent && GetMesh())
+	{
+		WeaponComponent->AttachToOwnerMesh(GetMesh());
+	}
 }
 
 UEpsilonTargetingComponent* AEpsilonCharacter::GetEpsilonTargetingComponent() const
 {
 	return TargetingComponent;
+}
+
+UEpsilonWeaponComponent* AEpsilonCharacter::GetWeaponComponent() const
+{
+	return WeaponComponent;
 }
 
 void AEpsilonCharacter::OnMoveInput(const FInputActionValue& Value)
@@ -166,6 +183,30 @@ void AEpsilonCharacter::GiveStartupAbilities()
 				FGameplayAbilitySpec(AbilityClass, 1, 0, this)
 			);
 		}
+	}
+}
+
+void AEpsilonCharacter::UpdateAttackCameraLock(float DeltaTime)
+{
+	if (!AbilitySystemComponent) return;
+
+	const bool bIsAttacking = AbilitySystemComponent->HasMatchingGameplayTag(
+		FGameplayTag::RequestGameplayTag(FName("State.Attack.Active")));
+
+	if (!bIsAttacking) return;
+
+	AActor* LockedTarget = TargetingComponent ? TargetingComponent->GetOrRefreshLockedTarget() : nullptr;
+	if (!IsValid(LockedTarget)) return;
+
+	if (AController* PC = GetController())
+	{
+		const FVector ToTarget = LockedTarget->GetActorLocation() - GetActorLocation();
+		const FRotator DesiredRotation = ToTarget.Rotation();
+
+		const FRotator CurrentRotation = PC->GetControlRotation();
+		const FRotator NewRotation = FMath::RInterpTo(CurrentRotation, DesiredRotation, DeltaTime, AttackCameraLockInterpSpeed);
+
+		PC->SetControlRotation(NewRotation);
 	}
 }
 

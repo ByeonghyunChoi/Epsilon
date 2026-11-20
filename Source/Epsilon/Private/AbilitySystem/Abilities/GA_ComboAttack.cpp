@@ -4,6 +4,7 @@
 #include "AbilitySystemInterface.h"
 #include "Characters/EpsilonCharacter.h"
 #include "Components/EpsilonTargetingComponent.h"
+#include "Components/EpsilonWeaponComponent.h"
 
 UGA_ComboAttack::UGA_ComboAttack()
 {
@@ -31,6 +32,17 @@ void UGA_ComboAttack::ActivateAbility(
 	if (AEpsilonCharacter* OwnerChar = Cast<AEpsilonCharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		OwnerChar->GetEpsilonTargetingComponent()->AcquireNewLock(); // 콤보 시작 시 1회
+	}
+
+	if (AEpsilonCharacter* OwnerChar = Cast<AEpsilonCharacter>(ActorInfo->AvatarActor.Get()))
+	{
+		if (UEpsilonWeaponComponent* Weapon = OwnerChar->GetWeaponComponent())
+		{
+			Weapon->OnWeaponHit.AddLambda([](AActor* HitActor)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Weapon Hit: %s"), *HitActor->GetName());
+				});
+		}
 	}
 
 	PlayComboMontage(CurrentComboIndex);
