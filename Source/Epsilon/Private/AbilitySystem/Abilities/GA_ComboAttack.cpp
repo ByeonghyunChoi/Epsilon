@@ -5,6 +5,7 @@
 #include "Characters/EpsilonCharacter.h"
 #include "Components/EpsilonTargetingComponent.h"
 #include "Components/EpsilonWeaponComponent.h"
+#include "AbilitySystem/FunctionLibrary/EpsilonCombatLibrary.h"
 
 UGA_ComboAttack::UGA_ComboAttack()
 {
@@ -32,16 +33,11 @@ void UGA_ComboAttack::ActivateAbility(
 	if (AEpsilonCharacter* OwnerChar = Cast<AEpsilonCharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		OwnerChar->GetEpsilonTargetingComponent()->AcquireNewLock(); // 콤보 시작 시 1회
-	}
 
-	if (AEpsilonCharacter* OwnerChar = Cast<AEpsilonCharacter>(ActorInfo->AvatarActor.Get()))
-	{
 		if (UEpsilonWeaponComponent* Weapon = OwnerChar->GetWeaponComponent())
 		{
-			Weapon->OnWeaponHit.AddLambda([](AActor* HitActor)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Weapon Hit: %s"), *HitActor->GetName());
-				});
+			// 구독은 콤보 시작 시 1회만
+			WeaponHitDelegateHandle = Weapon->OnWeaponHit.AddUObject(this, &UGA_ComboAttack::HandleWeaponHit);
 		}
 	}
 
@@ -135,6 +131,14 @@ void UGA_ComboAttack::PlayComboMontage(int32 ComboIndex)
 
 }
 
+void UGA_ComboAttack::HandleWeaponHit(AActor* HitActor)
+{
+	if (!CachedActorInfo || !HitActor) return;
+
+	AActor* Instigator = CachedActorInfo->AvatarActor.Get();
+	UEpsilonCombatLibrary::ApplyDamage(Instigator, HitActor, DamageEffectClass, DamageAmount);
+}
+
 void UGA_ComboAttack::OnMontageCompleted()
 {
 	CurrentComboIndex = 0;
@@ -146,6 +150,11 @@ void UGA_ComboAttack::OnMontageCompleted()
 		if (AEpsilonCharacter* OwnerChar = Cast<AEpsilonCharacter>(CachedActorInfo->AvatarActor.Get()))
 		{
 			OwnerChar->GetEpsilonTargetingComponent()->ClearLock();
+
+			if (UEpsilonWeaponComponent* Weapon = OwnerChar->GetWeaponComponent())
+			{
+				Weapon->OnWeaponHit.Remove(WeaponHitDelegateHandle);
+			}
 		}
 	}
 

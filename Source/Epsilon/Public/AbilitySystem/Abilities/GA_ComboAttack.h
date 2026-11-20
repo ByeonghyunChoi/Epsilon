@@ -56,4 +56,16 @@ protected:
 
 	void PlayComboMontage(int32 ComboIndex);
 
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<class UGameplayEffect> DamageEffectClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float DamageAmount = 10.f;
+
+	FDelegateHandle WeaponHitDelegateHandle;
+
+	UFUNCTION()
+	void HandleWeaponHit(AActor* HitActor);
+
 };
